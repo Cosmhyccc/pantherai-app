@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "builds": [
+    { "src": "api/**/*.js", "use": "@vercel/node" },
+    { "src": "chatbot/**/*", "use": "@vercel/static" }
+  ],
+  "routes": [
+    { "src": "/api/subscription-check", "dest": "/api/subscription-check.js" },
+    { "src": "/api/chat/stream", "dest": "/api/chat/stream.js" },
+    { "src": "/api/chat", "dest": "/api/chat.js" },
+    { "src": "/(.*)", "dest": "/chatbot/$1" }
+  ]
+}

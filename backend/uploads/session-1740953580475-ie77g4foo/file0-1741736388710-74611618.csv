@@ -1,0 +1,55 @@
+REGION,DIVISION,STATE,MINOR POPULATION,TEACHERS
+Northeast,New England,Connecticut,735193,45081
+Northeast,New England,Maine,250404,14760
+Northeast,New England,Massachusetts,1366857,73381
+Northeast,New England,New Hampshire,258170,14589
+Northeast,New England,Rhode Island,205202,10687
+Northeast,New England,Vermont,115973,8313
+Northeast,Middle Atlantic,New Jersey,1953631,115496
+Northeast,Middle Atlantic,New York,4068092,213159
+Northeast,Middle Atlantic,Pennsylvania,2648911,121918
+Midwest,East North Central,Illinois,2857131,128204
+Midwest,East North Central,Indiana,1568130,61018
+Midwest,East North Central,Michigan,2164668,84473
+Midwest,East North Central,Ohio,2593325,98912
+Midwest,East North Central,Wisconsin,1276101,58598
+Midwest,West North Central,Iowa,730767,35553
+Midwest,West North Central,Kansas,705961,36387
+Midwest,West North Central,Minnesota,1302615,57260
+Midwest,West North Central,Missouri,1376751,68496
+Midwest,West North Central,Nebraska,476841,23771
+Midwest,West North Central,North Dakota,178697,9284
+Midwest,West North Central,South Dakota,217606,9833
+South,South Atlantic,Delaware,203616,9399
+South,South Atlantic,Florida,4229071,186128
+South,South Atlantic,Georgia,2505531,116022
+South,South Atlantic,Maryland,1340148,60175
+South,South Atlantic,North Carolina,2300622,100401
+South,South Atlantic,South Carolina,1105655,52467
+South,South Atlantic,Virginia,1869737,85936
+South,South Atlantic,District of Columbia,127494,6659
+South,South Atlantic,West Virginia,364160,19239
+South,East South Central,Alabama,1089820,41802
+South,East South Central,Kentucky,1008829,42064
+South,East South Central,Mississippi,706138,31625
+South,East South Central,Tennessee,1506219,64019
+South,West South Central,Arkansas,703180,35800
+South,West South Central,Louisiana,1095916,40281
+South,West South Central,Oklahoma,956433,41597
+South,West South Central,Texas,7398009,356877
+West,Mountain,Arizona,1642647,47868
+West,Mountain,Colorado,1265232,52373
+West,Mountain,Idaho,446972,16592
+West,Mountain,Montana,229434,10515
+West,Mountain,Nevada,688997,23709
+West,Mountain,New Mexico,482153,21092
+West,Mountain,Utah,932462,29212
+West,Mountain,Wyoming,134775,7335
+West,Pacific,Alaska,183816,7743
+West,Pacific,California,8989764,271523
+West,Pacific,Hawaii,303413,12033
+West,Pacific,Oregon,873567,29909
+West,Pacific,Washington,1663283,60183
+,,,,
+,,,,
+,,,,

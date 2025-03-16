@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PantherAI - Your AI Product Agent</title>
+  <style>
+    :root {
+      --bg-primary: #0a0a0a;
+      --bg-secondary: #171717;
+      --bg-tertiary: #262626;
+      --text-primary: #ffffff;
+      --text-secondary: #a3a3a3;
+      --accent-primary: #8b5cf6;
+      --accent-secondary: #7c3aed;
+      --accent-hot: #d946ef;
+      --accent-glow: rgba(139, 92, 246, 0.2);
+      --border-color: #333333;
+      --border-radius: 12px;
+      --font-main: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --transition: all 0.3s ease;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0px); }
+    }
+    
+    @keyframes gradient-shift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes rotate {
+      from { transform: translate(-50%, -50%) rotate(0deg); }
+      to { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+    
+    body { 
+      font-family: var(--font-main);
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      position: relative;
+    }
+
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem 0;
+      position: relative;
+      z-index: 100;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-weight: 800;
+      font-size: 1.5rem;
+      text-decoration: none;
+      color: var(--text-primary);
+    }
+
+    .logo span {
+      background: linear-gradient(90deg, var(--accent-primary), var(--accent-hot));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .logo-icon {
+      font-size: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+    }
+
+    .nav-link {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-weight: 500;
+      transition: var(--transition);
+      position: relative;
+      padding: 0.5rem 0;
+    }
+
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent-primary), var(--accent-hot));
+      transition: var(--transition);
+    }
+
+    .nav-link:hover {
+      color: var(--accent-primary);
+    }
+
+    .nav-link:hover::after {
+      width: 100%;
+    }
+
+    .hero {
+      display: flex;
+      padding: 6rem 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-content {
+      flex: 1;
+      max-width: 600px;
+      animation: fadeIn 1s ease-out;
+      position: relative;
+      z-index: 2;
+    }
+
+    .hero h1 {
+      font-size: 3.5rem;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 1.5rem;
+      background: linear-gradient(90deg, var(--accent-primary), var(--accent-hot), var(--accent-primary));
+      background-size: 200% 200%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: gradient-shift 5s ease infinite;
+    }
+
+    .hero h1 span {
+      display: block;
+    }
+
+    .hero p {
+      font-size: 1.25rem;
+      color: var(--text-secondary);
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-visual {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+
+    .panther-container {
+      position: relative;
+      width: 400px;
+      height: 400px;
+      animation: float 6s ease-in-out infinite;
+    }
+
+    .orbit {
+      position: absolute;
+      border: 1px dashed rgba(139, 92, 246, 0.3);
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .orbit-1 {
+      width: 300px;
+      height: 300px;
+      animation: rotate 20s linear infinite;
+    }
+
+    .orbit-2 {
+      width: 400px;
+      height: 400px;
+      animation: rotate 30s linear infinite reverse;
+    }
+
+    .orbit-icon {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--accent-primary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.2rem;
+      transition: all 0.3s ease;
+    }
+
+    .orbit-icon:hover {
+      transform: scale(1.2);
+      background: var(--accent-primary);
+    }
+
+    .icon-1 { top: 5%; left: 50%; }
+    .icon-2 { top: 50%; left: 95%; }
+    .icon-3 { top: 95%; left: 50%; }
+    .icon-4 { top: 50%; left: 5%; }
+
+    .waitlist-form {
+      max-width: 500px;
+      margin: 0 auto;
+      display: flex;
+      gap: 1rem;
+    }
+
+    .waitlist-form input {
+      flex: 1;
+      padding: 1rem 1.5rem;
+      border: 2px solid var(--border-color);
+      border-radius: var(--border-radius);
+      font-size: 1rem;
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      transition: var(--transition);
+    }
+
+    .waitlist-form input:focus {
+      outline: none;
+      border-color: var(--accent-primary);
+    }
+
+    .waitlist-form button {
+      padding: 1rem 2rem;
+      background-color: var(--accent-primary);
+      color: white;
+      border: none;
+      border-radius: var(--border-radius);
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .waitlist-form button:hover {
+      background-color: var(--accent-secondary);
+      transform: translateY(-2px);
+    }
+
+    .integrations {
+      padding: 2rem 0;
+      text-align: center;
+      margin: 2rem 0;
+    }
+
+    .integrations h3 {
+      color: var(--text-secondary);
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 2rem;
+    }
+
+    .integration-logos {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 3rem;
+      flex-wrap: wrap;
+    }
+
+    .integration-logo {
+      height: 32px;
+      opacity: 0.6;
+      transition: var(--transition);
+      fill: currentColor;
+      color: white;
+    }
+
+    .integration-logo:hover {
+      opacity: 1;
+    }
+    
+    .integration-logo svg {
+      height: 100%;
+      width: auto;
+    }
+
+    .features {
+      padding: 4rem 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+    }
+
+    .feature-card {
+      background: var(--bg-secondary);
+      padding: 2rem;
+      border-radius: var(--border-radius);
+      border: 1px solid var(--border-color);
+      transition: var(--transition);
+    }
+    
+    .feature-card:hover {
+      transform: translateY(-5px);
+      border-color: var(--accent-primary);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      background: rgba(139, 92, 246, 0.1);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .feature-icon svg {
+      width: 24px;
+      height: 24px;
+      color: var(--accent-primary);
+    }
+
+    .feature-card h3 {
+      font-size: 1.25rem;
+      margin-bottom: 1rem;
+      color: var(--text-primary);
+    }
+
+    .feature-card p {
+      color: var(--text-secondary);
+    }
+
+    .cta-section {
+      padding: 6rem 0;
+      text-align: center;
+    }
+
+    .cta-box {
+      background: var(--bg-secondary);
+      border-radius: var(--border-radius);
+      padding: 4rem 2rem;
+      max-width: 800px;
+      margin: 0 auto;
+      border: 1px solid var(--border-color);
+    }
+
+    .cta-box h2 {
+      font-size: 2.5rem;
+      margin-bottom: 1.5rem;
+      background: linear-gradient(90deg, var(--accent-primary), var(--accent-hot));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .cta-box p {
+      color: var(--text-secondary);
+      margin-bottom: 2rem;
+      font-size: 1.2rem;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    footer {
+      padding: 4rem 0;
+      text-align: center;
+      color: var(--text-secondary);
+      border-top: 1px solid var(--border-color);
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 0 1rem;
+      }
+
+      .navbar {
+        flex-direction: column;
+        padding: 1rem;
+      }
+
+      .nav-links {
+        margin-top: 1rem;
+        width: 100%;
+        justify-content: center;
+      }
+
+      .hero {
+        flex-direction: column-reverse;
+        padding: 2rem 0;
+        text-align: center;
+      }
+
+      .hero-content {
+        max-width: 100%;
+        padding: 2rem 1rem;
+      }
+
+      .hero h1 {
+        font-size: 2rem;
+        line-height: 1.3;
+      }
+
+      .hero p {
+        font-size: 1rem;
+      }
+
+      .panther-container {
+        width: 280px;
+        height: 280px;
+      }
+
+      .panther-svg {
+        width: 280px;
+        height: 280px;
+      }
+
+      .orbit-1 {
+        width: 200px;
+        height: 200px;
+      }
+
+      .orbit-2 {
+        width: 260px;
+        height: 260px;
+      }
+
+      .orbit-icon {
+        width: 30px;
+        height: 30px;
+        font-size: 1rem;
+      }
+
+      .waitlist-form {
+        flex-direction: column;
+        width: 100%;
+        padding: 0 1rem;
+      }
+
+      .waitlist-form input,
+      .waitlist-form button {
+        width: 100%;
+      }
+
+      .integration-logos {
+        gap: 1.5rem;
+        flex-wrap: wrap;
+        padding: 0 1rem;
+      }
+
+      .integration-logo {
+        height: 24px;
+      }
+
+      .features {
+        grid-template-columns: 1fr;
+        padding: 2rem 1rem;
+        gap: 1.5rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .hero h1 {
+        font-size: 1.75rem;
+      }
+
+      .panther-container {
+        width: 240px;
+        height: 240px;
+      }
+
+      .panther-svg {
+        width: 240px;
+        height: 240px;
+      }
+
+      .orbit-1 {
+        width: 180px;
+        height: 180px;
+      }
+
+      .orbit-2 {
+        width: 220px;
+        height: 220px;
+      }
+
+      .nav-links {
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .feature-card {
+        padding: 1.5rem;
+      }
+
+      .integration-logo {
+        height: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav class="navbar">
+      <a href="#" class="logo">
+        <div class="logo-icon">🐈‍⬛</div>
+        <span>pantherAI
+      </a>
+      <div class="nav-links">
+        <a href="#features" class="nav-link">Features</a>
+        <a href="#integrations" class="nav-link">Integrations</a>
+        <a href="#contact" class="nav-link">Contact</a>
+      </div>
+    </nav>
+
+    <section class="hero">
+      <div class="hero-content">
+        <h1>Your AI Copilot for Product Management</h1>
+        <p>We are building the first AI product dashboard that connects to your entire product stack, provides real time insights, and helps you make better decisions with AI-powered analytics.</p>
+          <p>Imagine cursor, but for you.</p>
+        <form class="waitlist-form" action="https://getform.io/f/bolmolja" method="POST">
+          <input type="email" name="email" placeholder="Enter your work email" required>
+          <button type="submit">Join Private Beta</button>
+        </form>
+      </div>
+      <div class="hero-visual">
+        <div class="panther-container">
+          <svg class="panther-svg" width="400" height="400" viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M250 400C345.967 400 425 320.967 425 225C425 129.033 345.967 50 250 50C154.033 50 75 129.033 75 225C75 320.967 154.033 400 250 400Z" fill="url(#paint0_radial)" fill-opacity="0.1"/>
+            <path d="M285.5 173C292.956 173 299 166.956 299 159.5C299 152.044 292.956 146 285.5 146C278.044 146 272 152.044 272 159.5C272 166.956 278.044 173 285.5 173Z" fill="#8B5CF6"/>
+            <path d="M215.5 173C222.956 173 229 166.956 229 159.5C229 152.044 222.956 146 215.5 146C208.044 146 202 152.044 202 159.5C202 166.956 208.044 173 215.5 173Z" fill="#8B5CF6"/>
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M156 205C156 170.386 184.386 142 219 142H282C316.614 142 345 170.386 345 205V255C345 289.614 316.614 318 282 318H219C184.386 318 156 289.614 156 255V205ZM219 166C197.461 166 180 183.461 180 205V255C180 276.539 197.461 294 219 294H282C303.539 294 321 276.539 321 255V205C321 183.461 303.539 166 282 166H219Z" fill="#8B5CF6"/>
+            <path d="M270 235C270 244.941 261.046 253 250 253C238.954 253 230 244.941 230 235C230 234.673 230.012 234.347 230.038 234.025C241.187 235.511 252.477 234.26 262.365 226.531C265.837 228.954 270 231.773 270 235Z" fill="#8B5CF6"/>
+            <path d="M230 180L250 210L270 180" stroke="#8B5CF6" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M156 210C136.118 210 120 193.882 120 174C120 160.193 128.693 148.188 141.01 143.106C149.274 136.522 159.694 132.5 171.142 132.5C190.22 132.5 206.233 146.068 208.778 164.154C207.27 163.923 205.727 163.8 204.156 163.8C187.647 163.8 173.699 174.214 168.524 188.659C166.313 190.396 163.903 191.765 161.25 192.667V192.8C161.25 201.75 167.001 209.292 175 111.876V130C175 134.7 178.8 138.5 183.5 138.5H222.5V217C213.338 213.425 206.667 205.37 205.27 195.5H156V210Z" fill="#8B5CF6"/>
+            <path d="M344 210C363.882 210 380 193.882 380 174C380 160.193 371.307 148.188 358.99 143.106C350.726 136.522 340.306 132.5 328.858 132.5C309.78 132.5 293.767 146.068 291.222 164.154C292.73 163.923 294.273 163.8 295.844 163.8C312.353 163.8 326.301 174.214 331.476 188.659C333.687 190.396 336.097 191.765 338.75 192.667V192.8C338.75 201.75 332.999 209.292 325 111.876V130C325 134.7 321.2 138.5 316.5 138.5H277.5V217C286.662 213.425 293.333 205.37 294.73 195.5H344V210Z" fill="#8B5CF6"/>
+            <path d="M207.54 322.809C200.809 333.051 193.425 344.638 193.425 358.61C193.425 375.383 204.54 386.5 221.315 386.5C230.471 386.5 237.966 382.296 242.369 375.87M292.46 322.809C299.191 333.051 306.575 344.638 306.575 358.61C306.575 375.383 295.46 386.5 278.684 386.5C269.529 386.5 262.034 382.296 257.631 375.87" stroke="#8B5CF6" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+            <defs>
+              <radialGradient id="paint0_radial" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(250 225) rotate(90) scale(175)">
+                <stop stop-color="#8B5CF6"/>
+                <stop offset="1" stop-color="#0A0A0A" stop-opacity="0"/>
+              </radialGradient>
+            </defs>
+          </svg>
+          <div class="orbit orbit-1">
+            <div class="orbit-icon icon-1">📊</div>
+            <div class="orbit-icon icon-3">📝</div>
+            <div class="orbit-icon icon-4">✨</div>
+          </div>
+          <div class="orbit orbit-2">
+            <div class="orbit-icon icon-2">💡</div>
+            <div class="orbit-icon icon-4">⚙️</div>
+          </div>
+        </div>
+      </div>
+  
+  
+  </div>
+  
+
+  <script>
+    // Make orbiting icons interactive
+    document.addEventListener('DOMContentLoaded', () => {
+      const orbitIcons = document.querySelectorAll('.orbit-icon');
+      
+      orbitIcons.forEach(icon => {
+        icon.addEventListener('mouseenter', () => {
+          icon.style.transform = 'scale(1.2)';
+          icon.style.background = 'var(--accent-primary)';
+        });
+        
+        icon.addEventListener('mouseleave', () => {
+          icon.style.transform = '';
+          icon.style.background = 'var(--bg-secondary)';
+        });
+      });
+    });
+  </script>
+</body>
+</html>
+    
+    <section class="integrations" id="integrations">
+      <h3>Integrates Seamlessly With</h3>
+      <div class="integration-logos">
+        <!-- Jira Logo -->
+        <div class="integration-logo">
+          <svg viewBox="0 0 128 128" fill="currentColor">
+            <path d="M108.023 16H61.805c0 11.52 9.324 20.844 20.844 20.844h8.504v8.314c0 11.52 9.324 20.844 20.844 20.844V19.977A3.977 3.977 0 00108.023 16zm-43.104 43.104H19.977A3.977 3.977 0 0016 63.081v46.218c0 11.52 9.324 20.844 20.844 20.844h8.504v-8.314c0-11.52 9.324-20.844 20.844-20.844V62.977a3.977 3.977 0 00-1.273-3.873zm-1.191-8.489c2.815-2.815 2.815-7.373 0-10.188L47.766 24.465c-5.752-5.752-15.063-5.752-20.815 0L11.256 40.16c-5.752 5.752-5.752 15.063 0 20.815L26.99 76.707c2.815 2.815 7.373 2.815 10.188 0l26.55-26.092z"/>
+          </svg>
+        </div>
+        
+        <!-- Slack Logo -->
+        <div class="integration-logo">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/>
+          </svg>
+        </div>
+        
+        <!-- Notion Logo -->
+        <div class="integration-logo">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M4.459 4.208c.746.606 1.026.56 2.428.466l13.215-.793c.28 0 .047-.28-.046-.326L17.86 1.968c-.42-.326-.981-.7-2.055-.607L3.01 2.295c-.466.046-.56.28-.374.466zm.793 3.08v13.904c0 .747.373 1.027 1.214.98l14.523-.84c.841-.046.935-.56.935-1.167V6.354c0-.606-.233-.933-.748-.887l-15.177.887c-.56.047-.747.327-.747.933zm14.337.745c.093.42 0 .84-.42.888l-.7.14v10.264c-.608.327-1.168.514-1.635.514-.748 0-.935-.234-1.495-.933l-4.577-7.186v6.952L12.21 19s0 .84-1.168.84l-3.222.186c-.093-.186 0-.653.327-.746l.84-.233V9.854L7.822 9.76c-.094-.42.14-1.026.793-1.073l3.456-.233 4.764 7.279v-6.44l-1.215-.139c-.093-.514.28-.887.747-.933zM1.936 1.035l13.31-.98c1.634-.14 2.055-.047 3.082.7l4.249 2.986c.7.513.934.653.934 1.213v16.378c0 1.026-.373 1.634-1.68 1.726l-15.458.934c-.98.047-1.448-.093-1.962-.747l-2.986-4.577c-.56-.84-.653-1.354-.653-2.008V3.737c0-.98.327-1.634 1.167-1.68z"/>
+          </svg>
+        </div>
+
+        <!-- GitHub Logo -->
+        <div class="integration-logo">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/>
+          </svg>
+        </div>
+
+        <!-- Linear Logo -->
+        <div class="integration-logo">
+          <svg viewBox="0 0 100 100" fill="currentColor">
+            <path d="M1.94 64.43a62.52 62.52 0 0133.89-33.94A62.46 62.46 0 0164.48 2a62.55 62.55 0 0133.94 33.89 62.5 62.5 0 01-128 28.54zm85.78-8.28a41.67 41.67 0 00-22.56-22.55 41.63 41.63 0 00-19-4.6 41.67 41.67 0 00-22.56 22.56 41.67 41.67 0 0064.11 4.59z"/>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <section id="features">
+      <div class="features">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          </div>
+          <h3>Smart Analytics Dashboard</h3>
+          <p>Get instant insights from your product data across all tools using AI. Track metrics, identify trends, and make data-driven decisions faster.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+            </svg>
+          </div>
+          <h3>AI Assistant & Chat</h3>
+          <p>Your personal AI Product Manager that understands context from all your tools. Get instant answers, suggestions, and automation for routine tasks.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
+          <h3>Unified Workspace</h3>
+          <p>Connect Jira, Slack, Notion, and all your favorite tools in one place. Automatically sync data, track progress, and eliminate context switching.</p>
+        </div>
+      </div>
+
+      <footer>
+        <p>© 2025 pantherAI. All rights reserved.</p>
+      </footer>
+    </section
