@@ -6,7 +6,7 @@ const GEMINI_API_KEY = config.gemini.apiKey;
 
 // Updated Gemini model mapping to use the latest models
 const GEMINI_MODEL_MAPPING = {
-  'gemini-pro': 'gemini-pro',
+  'gemini-pro': 'gemini-2.0-flash',
   'gemini-pro-vision': 'gemini-pro-vision',
   'gemini-2.0-flash': 'gemini-2.0-flash', // Use the actual multimodal model
   'gemini-flash': 'gemini-2.0-flash',     // Alias for the 2.0-flash model
@@ -102,7 +102,7 @@ export async function generateGeminiResponse(userContent, modelName, imageFiles 
     console.log(`Using Gemini API model: ${apiModel} (has images: ${hasImages})`);
     
     // IMPORTANT: Using the correct endpoint format
-    const geminiApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${apiModel}:generateContent?key=${GEMINI_API_KEY}`;
+    const geminiApiUrl = `https://generativelanguage.googleapis.com/v1/models/${apiModel}:generateContent?key=${GEMINI_API_KEY}`;
     console.log(`Using Gemini API URL: ${geminiApiUrl}`);
     
     // Create the request payload
