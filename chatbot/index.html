@@ -915,6 +915,11 @@
           <span id="user-email"></span>
         </div>
         <div id="sidebar-actions">
+          <button id="refreshChatsBtn" title="Refresh chat history across browsers" style="background-color: var(--bg-tertiary); border: none; border-radius: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); cursor: pointer; transition: var(--transition);">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38"/>
+            </svg>
+          </button>
           <button id="logoutButton">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
@@ -1000,6 +1005,81 @@
   </div>
 
   <script>
+    // Debug function for cross-browser chat diagnostics
+    window.debugUserChats = async function() {
+      try {
+        console.group("🧩 CROSS-BROWSER CHAT DIAGNOSTICS");
+        
+        // 1. Check authentication status
+        const { data: sessionData } = await window.supabase.auth.getSession();
+        const userId = sessionData?.session?.user?.id;
+        const userEmail = sessionData?.session?.user?.email;
+        
+        console.log("Auth status:", sessionData?.session ? "Logged in" : "Not logged in");
+        console.log("User ID:", userId || "Not available");
+        console.log("User email:", userEmail || "Not available");
+        
+        if (!userId) {
+          console.error("Not logged in - cannot fetch chats");
+          console.groupEnd();
+          return { error: "Not logged in" };
+        }
+        
+        // 2. Check localStorage sessionId
+        const currentSessionId = localStorage.getItem("sessionId");
+        console.log("Current localStorage sessionId:", currentSessionId);
+        
+        // 3. Fetch all chats directly from database with explicit userId
+        console.log("Fetching all chats for user ID:", userId);
+        const { data: allChats, error: chatsError } = await window.supabase
+          .from('chats')
+          .select('id, messages, created_at, user_id')
+          .eq('user_id', userId);
+          
+        if (chatsError) {
+          console.error("Error fetching chats:", chatsError);
+          console.groupEnd();
+          return { error: chatsError.message };
+        }
+        
+        console.log(`Found ${allChats?.length || 0} chats in database for user ${userId}`);
+        
+        // 4. Print detailed info about each chat
+        if (allChats && allChats.length > 0) {
+          allChats.forEach((chat, index) => {
+            console.log(`Chat #${index+1}:`);
+            console.log(`  ID: ${chat.id}`);
+            console.log(`  User ID: ${chat.user_id}`);
+            console.log(`  Created: ${new Date(chat.created_at).toLocaleString()}`);
+            console.log(`  Message count: ${chat.messages?.length || 0}`);
+            
+            if (chat.messages && chat.messages.length > 0) {
+              const firstUserMsg = chat.messages.find(m => m.role === "user");
+              if (firstUserMsg) {
+                console.log(`  First message: ${firstUserMsg.content.substring(0, 30)}${firstUserMsg.content.length > 30 ? '...' : ''}`);
+              }
+            }
+          });
+        }
+        
+        console.groupEnd();
+        return {
+          success: true,
+          userId: userId,
+          chatCount: allChats?.length || 0,
+          chats: allChats.map(c => ({
+            id: c.id,
+            created: new Date(c.created_at).toLocaleString(),
+            messageCount: c.messages?.length || 0
+          }))
+        };
+      } catch (err) {
+        console.error("Error in debugUserChats:", err);
+        console.groupEnd();
+        return { error: err.message };
+      }
+    };
+
     // FIX FOR CHAT HISTORY LOADING
     async function loadChatById(sessionId) {
       try {
@@ -1117,12 +1197,92 @@
       const subscribeButton = document.getElementById("subscribeButton");
       const premiumBadge = document.getElementById("premium-badge");
       const deleteChatButton = document.getElementById("deleteChatButton");
+      const refreshChatsBtn = document.getElementById("refreshChatsBtn");
+
+      // Setup refresh button functionality
+      refreshChatsBtn.addEventListener("click", async function() {
+        // Show loading state
+        const originalInnerHTML = refreshChatsBtn.innerHTML;
+        refreshChatsBtn.innerHTML = '⏳';
+        refreshChatsBtn.disabled = true;
+        
+        try {
+            // Force clear local storage chat history
+            localStorage.removeItem("chatHistory");
+            
+            // Get all user chats from database
+            const { data: sessionData } = await window.supabase.auth.getSession();
+            const userId = sessionData?.session?.user?.id;
+            
+            if (userId) {
+                const { data: chats, error } = await window.supabase
+                    .from('chats')
+                    .select('id, messages, created_at')
+                    .eq('user_id', userId)
+                    .order('created_at', { ascending: false });
+                    
+                if (error) {
+                    console.error("Error fetching chats:", error);
+                } else {
+                    console.log(`Found ${chats.length} chats in database`);
+                    
+                    // Update localStorage with these chats
+                    const newChatHistory = chats.map(chat => {
+                        let title = "New Chat";
+                        if (chat.messages && Array.isArray(chat.messages) && chat.messages.length > 0) {
+                            const firstUserMsg = chat.messages.find(m => m.role === "user");
+                            if (firstUserMsg) {
+                                title = firstUserMsg.content.length > 30 ? 
+                                    firstUserMsg.content.substring(0, 30) + "..." : 
+                                    firstUserMsg.content;
+                            }
+                        }
+                        
+                        return {
+                            id: chat.id,
+                            title: title,
+                            timestamp: chat.created_at
+                        };
+                    });
+                    
+                    localStorage.setItem("chatHistory", JSON.stringify(newChatHistory));
+                    
+                    // Re-render the chat history
+                    renderChatHistory();
+                }
+            }
+            
+            refreshChatsBtn.innerHTML = '✓';
+            setTimeout(() => {
+                refreshChatsBtn.innerHTML = originalInnerHTML;
+                refreshChatsBtn.disabled = false;
+            }, 1000);
+        } catch (e) {
+            console.error("Error refreshing chats:", e);
+            refreshChatsBtn.innerHTML = '❌';
+            setTimeout(() => {
+                refreshChatsBtn.innerHTML = originalInnerHTML;
+                refreshChatsBtn.disabled = false;
+            }, 1000);
+        }
+      });
+
+      // Add hover effect to refresh button (matching logout button style)
+      refreshChatsBtn.addEventListener("mouseover", function() {
+        this.style.backgroundColor = "var(--bg-primary)";
+        this.style.color = "var(--text-primary)";
+      });
+      
+      refreshChatsBtn.addEventListener("mouseout", function() {
+        this.style.backgroundColor = "var(--bg-tertiary)";
+        this.style.color = "var(--text-secondary)";
+      });
 
       // Auto-focus the input field when the page loads
       if (userInput) {
-    // Delay focus slightly to ensure UI is fully loaded
-    setTimeout(() => userInput.focus(), 300);
-}
+        // Delay focus slightly to ensure UI is fully loaded
+        setTimeout(() => userInput.focus(), 300);
+      }
       
       // Initialize sidebar toggle functionality
       function initSidebarToggle() {
@@ -1427,6 +1587,47 @@
           
           // Update UI based on subscription status
           updateUIForSubscription(userIsSubscribed);
+
+          // When user first logs in, fetch all chats from database
+          // Force clear local storage chat history to ensure fresh data
+          localStorage.removeItem("chatHistory");
+          
+          // Fetch all user chats from database
+          const userId = session.user.id;
+          const { data: chats, error } = await window.supabase
+              .from('chats')
+              .select('id, messages, created_at')
+              .eq('user_id', userId)
+              .order('created_at', { ascending: false });
+              
+          if (error) {
+              console.error("Error fetching chats:", error);
+          } else {
+              console.log(`Found ${chats?.length || 0} chats in database`);
+              
+              // Update localStorage with these chats
+              if (chats && chats.length > 0) {
+                  const newChatHistory = chats.map(chat => {
+                      let title = "New Chat";
+                      if (chat.messages && Array.isArray(chat.messages) && chat.messages.length > 0) {
+                          const firstUserMsg = chat.messages.find(m => m.role === "user");
+                          if (firstUserMsg) {
+                              title = firstUserMsg.content.length > 30 ? 
+                                  firstUserMsg.content.substring(0, 30) + "..." : 
+                                  firstUserMsg.content;
+                          }
+                      }
+                      
+                      return {
+                          id: chat.id,
+                          title: title,
+                          timestamp: chat.created_at
+                      };
+                  });
+                  
+                  localStorage.setItem("chatHistory", JSON.stringify(newChatHistory));
+              }
+          }
           
           // Render chat history
           renderChatHistory();
@@ -1581,6 +1782,43 @@
                   
                   // Update UI based on subscription status
                   updateUIForSubscription(subscribed);
+                  
+                  // Force fetch all chats from database to sync across browsers
+                  const userId = session.user.id;
+                  const { data: chats, error } = await window.supabase
+                      .from('chats')
+                      .select('id, messages, created_at')
+                      .eq('user_id', userId)
+                      .order('created_at', { ascending: false });
+                      
+                  if (error) {
+                      console.error("Error fetching chats:", error);
+                  } else {
+                      console.log(`Found ${chats?.length || 0} chats in database`);
+                      
+                      // Update localStorage with these chats
+                      if (chats && chats.length > 0) {
+                          const newChatHistory = chats.map(chat => {
+                              let title = "New Chat";
+                              if (chat.messages && Array.isArray(chat.messages) && chat.messages.length > 0) {
+                                  const firstUserMsg = chat.messages.find(m => m.role === "user");
+                                  if (firstUserMsg) {
+                                      title = firstUserMsg.content.length > 30 ? 
+                                          firstUserMsg.content.substring(0, 30) + "..." : 
+                                          firstUserMsg.content;
+                                  }
+                              }
+                              
+                              return {
+                                  id: chat.id,
+                                  title: title,
+                                  timestamp: chat.created_at
+                              };
+                          });
+                          
+                          localStorage.setItem("chatHistory", JSON.stringify(newChatHistory));
+                      }
+                  }
                   
                   // Render chat history
                   renderChatHistory();
