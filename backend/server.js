@@ -34,6 +34,14 @@ import {
   testGrokConnection
 } from './grokService.js'; 
 
+import { 
+  isDeepseekConfigured, 
+  generateDeepseekResponse, 
+  generateDeepseekStreamingResponse,
+  testDeepseekConnection
+} from './deepseekService.js';
+  
+
 // ** Integrations: Supabase and Stripe **
 import { createClient } from "@supabase/supabase-js";
 import Stripe from "stripe";
@@ -390,10 +398,20 @@ app.post("/api/chat", enhancedUpload, async (req, res) => {
       if (model) selectedModel = model;
       userSelectedModel.set(sessionId, selectedModel);
       
-      // ** Model access control for free users **
-      const premiumModels = ["gpt-4", "claude", "grok", "deepseek"];
-      const modelName = selectedModel.toLowerCase();
-      const isPremiumModel = premiumModels.some(pm => modelName.includes(pm));
+    // ** Model access control for free users **
+    // ** Model access control for free users **
+    const premiumModels = ["gpt-4", "claude", "grok", "deepseek-r1"];
+    const modelName = selectedModel.toLowerCase();
+    const isPremiumModel = premiumModels.some(pm => {
+    // Special case for deepseek models
+    if (pm === "deepseek-r1") {
+        return modelName === "deepseek-r1";
+    }
+    // Regular partial matching for other model families
+    return modelName.includes(pm);
+    });
+
+
       
       console.log(`Selected model: ${selectedModel}, Premium: ${isPremiumModel}, User subscribed: ${isSubscribed}`);
       
@@ -510,6 +528,10 @@ app.post("/api/chat", enhancedUpload, async (req, res) => {
         else if (selectedModel.includes("grok")) {
           // ** Handle Grok API **
           botReply = await generateGrokResponse(messages, selectedModel);
+        }
+        else if (selectedModel.includes("deepseek")) {
+          // ** Handle Deepseek API **
+          botReply = await generateDeepseekResponse(messages, selectedModel);
         }
         else {
           // ** Handle OpenAI API (default) **
@@ -680,9 +702,20 @@ app.post("/api/chat/stream", enhancedUpload, async (req, res) => {
             userSelectedModel.set(sessionId, selectedModel);
             
             // ** Start of model handling code **
-            const premiumModels = ["gpt-4", "claude", "grok", "deepseek"];
+            // ** Start of model handling code **
+            const premiumModels = ["gpt-4", "claude", "grok", "deepseek-r1"];
             const modelName = selectedModel.toLowerCase();
-            const isPremiumModel = premiumModels.some(pm => modelName.includes(pm));
+            const isPremiumModel = premiumModels.some(pm => {
+            // Special case for deepseek models
+            if (pm === "deepseek-r1") {
+                return modelName === "deepseek-r1";
+            }
+            // Regular partial matching for other model families
+            return modelName.includes(pm);
+            });
+
+
+
 
             console.log(`Streaming - Selected model: ${selectedModel}, Premium: ${isPremiumModel}, User subscribed: ${isSubscribed}`);
 
@@ -989,6 +1022,18 @@ app.post("/api/chat/stream", enhancedUpload, async (req, res) => {
                         return; // Already sent done message in streaming function
                     } catch (error) {
                         console.error("Grok API Error:", error);
+                        // Error already handled in streaming function
+                        return;
+                    }
+                }
+                else if (selectedModel.includes("deepseek")) {
+                    // Deepseek API (streaming)
+                    try {
+                        console.log("Calling Deepseek streaming with message count:", messages.length);
+                        await generateDeepseekStreamingResponse(res, messages, selectedModel, saveCompletedChat);
+                        return; // Already sent done message in streaming function
+                    } catch (error) {
+                        console.error("Deepseek API Error:", error);
                         // Error already handled in streaming function
                         return;
                     }
@@ -1614,10 +1659,10 @@ app.get("/api/test-claude-direct", async (req, res) => {
       console.error("Error testing Claude:", err);
       return res.status(500).json({ error: err.message });
     }
-  });
+});
   
-  // Test Grok connection
-  app.get("/api/test-grok-direct", async (req, res) => {
+// Test Grok connection
+app.get("/api/test-grok-direct", async (req, res) => {
     try {
       const testResult = await testGrokConnection();
       return res.json(testResult);
@@ -1625,7 +1670,18 @@ app.get("/api/test-claude-direct", async (req, res) => {
       console.error("Error testing Grok:", err);
       return res.status(500).json({ error: err.message });
     }
-  });
+});
+
+// Test Deepseek connection
+app.get("/api/test-deepseek-direct", async (req, res) => {
+    try {
+      const testResult = await testDeepseekConnection();
+      return res.json(testResult);
+    } catch (err) {
+      console.error("Error testing Deepseek:", err);
+      return res.status(500).json({ error: err.message });
+    }
+});
 
 // Database repair endpoint (for emergency fixes)
 app.post("/api/admin/repair-database", express.json(), async (req, res) => {

@@ -172,7 +172,7 @@ window.debugUserChats = async function() {
       let prdDetected = false;
       // Auth token and premium model list
       let authToken = null;
-      const premiumModels = ["gpt-4", "claude", "grok", "deepseek"];
+      const premiumModels = ["gpt-4", "claude", "grok", "deepseek-r1"];
       let retryCount = 0;
       const MAX_RETRIES = 3;
   

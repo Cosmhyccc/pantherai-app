@@ -947,16 +947,18 @@
           <div id="model-select-container">
             <div class="model-indicator"></div>
             <select id="model-select">
-              <option value="gpt-3.5-turbo">GPT-3.5 Turbo 👴🏽 </option>
+              <option value="gpt-3.5-turbo">GPT-4o mini 👼🏻  </option>
               <option value="gpt-4">GPT-4o 🚀 (Premium)</option>
               <option value="gemini-pro">Gemini Pro ✨ </option>
+              <option value="deepseek">Deepseek 🧠</option>
+              <option value="deepseek-r1">Deepseek R1 🐳 </option>
               <option value="claude-3-5-sonnet">Claude 3.5 Sonnet 🔥 (Premium)</option>
               <option value="claude-3-7-sonnet">Claude 3.7 Sonnet 🏆 (Premium)</option>
-              <option value="grok-2-latest">Grok 🐦 (Premium)</option>
+              <option value="grok-2-latest">Grok 2.0 🐦 (Premium)</option>
             </select>
           </div>
           <div id="subscription-area">
-            <button id="subscribeButton">Upgrade</button>
+            <button id="subscribeButton">Upgrade 🚀 </button>
             <div id="premium-badge" style="display: none;">PREMIUM 🔥 </div>
           </div>
           <button id="deleteChatButton">Delete Chat</button>
@@ -1142,14 +1144,14 @@
             
             if (userId) {
                 // FIXED: Directly query database without subscription check
-                const { data: chats, error } = await window.supabase
+                const { data: chats, error: usersError } = await window.supabase
                     .from('chats')
                     .select('id, messages, created_at')
                     .eq('user_id', userId)
                     .order('created_at', { ascending: false });
                     
-                if (error) {
-                    console.error("Error fetching chats:", error);
+                if (usersError) {
+                    console.error("Error fetching chats:", usersError);
                 } else {
                     console.log(`Found ${chats.length} chats in database`);
                     
@@ -1277,6 +1279,8 @@
       const premiumModels = ["gpt-4", "claude", "grok", "deepseek"];
       let retryCount = 0;
       const MAX_RETRIES = 3;
+      // Variable to track subscription status
+      let userIsSubscribed = false;
 
       // Preserve sessionId across reloads (clear other local data)
       window.addEventListener('beforeunload', function() {
@@ -1288,6 +1292,158 @@
       if (!messagesContainer || !userInput || !sendButton || !inputContainer) {
           console.error("Error: One or more elements not found!");
           return;
+      }
+
+      // Check URL for Stripe checkout result parameters
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('checkout') === 'success') {
+        console.log("💰 Detected successful Stripe checkout! Session ID:", urlParams.get('session_id'));
+        
+        // Show a loading indicator
+        const loadingDiv = document.createElement("div");
+        loadingDiv.id = "subscription-loading";
+        loadingDiv.style.position = "fixed";
+        loadingDiv.style.top = "20px";
+        loadingDiv.style.left = "50%";
+        loadingDiv.style.transform = "translateX(-50%)";
+        loadingDiv.style.padding = "10px 20px";
+        loadingDiv.style.background = "var(--accent-primary)";
+        loadingDiv.style.color = "white";
+        loadingDiv.style.borderRadius = "4px";
+        loadingDiv.style.zIndex = "9999";
+        loadingDiv.innerHTML = "Activating your premium subscription...";
+        document.body.appendChild(loadingDiv);
+        
+        // Give the webhook a moment to process, then check subscription status
+        setTimeout(async () => {
+          try {
+            console.log("Checking subscription status after payment...");
+            // Get the latest token
+            const { data: sessionData } = await window.supabase.auth.getSession();
+            authToken = sessionData?.session?.access_token;
+            
+            if (authToken) {
+              // Force refresh subscription status directly through API
+              let success = false;
+              
+              // Try multiple approaches in sequence for maximum reliability
+              // 1. First try the standard subscription check
+              try {
+                const response = await fetch('/api/subscription-check', {
+                  headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                if (response.ok) {
+                  const result = await response.json();
+                  console.log("API subscription check result:", result);
+                  
+                  // If the API says we're subscribed, we're done
+                  if (result.isSubscribed) {
+                    userIsSubscribed = true;
+                    success = true;
+                  }
+                }
+              } catch (err) {
+                console.error("Error in subscription check:", err);
+              }
+              
+              // 2. If first attempt failed, try force-updating the subscription
+              if (!success) {
+                try {
+                  console.log("Attempting to force update subscription...");
+                  const response = await fetch('/api/force-subscription-update', {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                  });
+                  
+                  if (response.ok) {
+                    const result = await response.json();
+                    console.log("Force update result:", result);
+                    
+                    if (result.success) {
+                      userIsSubscribed = true;
+                      success = true;
+                    }
+                  }
+                } catch (err) {
+                  console.error("Error forcing subscription update:", err);
+                }
+              }
+              
+              // 3. If still not successful, try the database fix approach
+              if (!success) {
+                try {
+                  console.log("Attempting database fix...");
+                  const response = await fetch('/api/fix-db', {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                  });
+                  
+                  if (response.ok) {
+                    const result = await response.json();
+                    console.log("Database fix result:", result);
+                    
+                    if (result.success) {
+                      userIsSubscribed = true;
+                      success = true;
+                    }
+                  }
+                } catch (err) {
+                  console.error("Error fixing database:", err);
+                }
+              }
+              
+              // Update UI based on subscription status
+              updateUIForSubscription(userIsSubscribed);
+              
+              if (success) {
+                // Show success message
+                if (loadingDiv) {
+                  loadingDiv.innerHTML = "✅ Premium features activated successfully!";
+                  setTimeout(() => {
+                    if (loadingDiv.parentNode) {
+                      loadingDiv.parentNode.removeChild(loadingDiv);
+                    }
+                  }, 3000);
+                }
+                
+                // Update UI to premium state
+                premiumBadge.style.display = "inline-block";
+                subscribeButton.style.display = "none";
+                
+                // Make premium models selectable
+                if (modelSelect) {
+                  Array.from(modelSelect.options).forEach(opt => {
+                    if (premiumModels.some(pm => opt.value.toLowerCase().includes(pm))) {
+                      opt.disabled = false;
+                      opt.textContent = opt.textContent.replace(" (Premium)", "");
+                    }
+                  });
+                }
+              } else {
+                // We tried everything and failed - show fallback message
+                if (loadingDiv) {
+                  loadingDiv.innerHTML = "⚠️ Payment processed, but subscription activation may be delayed. Try refreshing.";
+                  setTimeout(() => {
+                    if (loadingDiv.parentNode) {
+                      loadingDiv.parentNode.removeChild(loadingDiv);
+                    }
+                  }, 5000);
+                }
+              }
+            }
+          } catch (err) {
+            console.error("Error checking subscription after payment:", err);
+            if (loadingDiv && loadingDiv.parentNode) {
+              loadingDiv.parentNode.removeChild(loadingDiv);
+            }
+          }
+        }, 2000); // 2 second delay to ensure webhook has processed
+        
+        // Remove query params to prevent duplicate processing
+        window.history.replaceState({}, document.title, window.location.pathname);
+      } else if (urlParams.get('checkout') === 'cancel') {
+        // User canceled checkout
+        alert("Subscription checkout was canceled.");
+        window.history.replaceState({}, document.title, window.location.pathname);
       }
 
       // Add new chat button functionality
@@ -1518,9 +1674,37 @@
           }
       }
 
+      // Function to check subscription status via API
+      async function checkSubscriptionStatus() {
+          try {
+              const { data: sessionData } = await window.supabase.auth.getSession();
+              if (!sessionData || !sessionData.session) {
+                  return false;
+              }
+              
+              authToken = sessionData.session.access_token;
+              
+              const response = await fetch('/api/subscription-check', {
+                  headers: {
+                      'Authorization': `Bearer ${authToken}`
+                  }
+              });
+              
+              if (response.ok) {
+                  const result = await response.json();
+                  console.log("Subscription check result:", result);
+                  return result.isSubscribed;
+              }
+              
+              return false;
+          } catch (err) {
+              console.error("Error checking subscription:", err);
+              return false;
+          }
+      }
+
       // Handle initial authentication state
       const { data: { session } } = await window.supabase.auth.getSession();
-      let userIsSubscribed = false;
       if (session && session.user) {
           authToken = session.access_token;
           console.log("✅ User authenticated:", session.user.email);
@@ -1810,7 +1994,7 @@
           } else if (event === 'SIGNED_OUT') {
               authToken = null;
               appContainer.style.display = "none";
-              loginArealoginArea.style.display = "flex";
+              loginArea.style.display = "flex";
           }
       });
 
@@ -2266,104 +2450,42 @@
       });
       
       userInput.addEventListener("keydown", (e) => {
-          if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              if (activeStream) {
-                  cancelActiveStream();
-              }
-              sendMessage();
-          }
-      });
-
-      // Debugging helper - expose on window to diagnose issues
-      window.diagnoseChatIssue = async function() {
-        try {
-          console.group("🔍 CHAT HISTORY DIAGNOSIS");
-          const sessionId = localStorage.getItem("sessionId");
-          console.log("Current session ID:", sessionId);
-          
-          // Check auth status
-          const { data: sessionData } = await window.supabase.auth.getSession();
-          console.log("Auth status:", sessionData?.session ? "Logged in" : "Not logged in");
-          
-          if (!sessionData?.session) {
-            console.error("Not logged in - chat history won't load");
-            console.groupEnd();
-            return { error: "Not logged in" };
-          }
-          
-          // Check if this chat exists in database
-          const { data: chat, error: chatError } = await window.supabase
-            .from('chats')
-            .select('*')
-            .eq('id', sessionId)
-            .maybeSingle();
-            
-          if (chatError) {
-            console.error("Error fetching chat:", chatError);
-            console.groupEnd();
-            return { error: chatError };
-          }
-          
-          console.log("Chat found in database:", !!chat);
-          
-          if (!chat) {
-            console.error("Chat not found in database");
-            console.groupEnd();
-            return { error: "Chat not found" };
-          }
-          
-          // Check message structure
-          console.log("Messages data type:", typeof chat.messages);
-          console.log("Is messages an array?", Array.isArray(chat.messages));
-          console.log("Messages length:", chat.messages?.length || 0);
-          
-          if (!Array.isArray(chat.messages) || chat.messages.length === 0) {
-            console.error("Messages array empty or invalid");
-            console.groupEnd();
-            return { error: "No messages" };
-          }
-          
-          // Check first few messages
-          const sampleMessages = chat.messages.slice(0, 3);
-          console.log("Sample messages:", sampleMessages);
-          
-          // Check for role property in messages
-          const missingRoleMessages = chat.messages.filter(m => !m.role);
-          if (missingRoleMessages.length > 0) {
-            console.error("Some messages are missing the 'role' property:", missingRoleMessages);
-          }
-          
-          // Check for content property in messages
-          const missingContentMessages = chat.messages.filter(m => !m.content);
-          if (missingContentMessages.length > 0) {
-            console.error("Some messages are missing the 'content' property:", missingContentMessages);
-          }
-          
-          // Check role values
-          const roles = [...new Set(chat.messages.map(m => m.role))];
-          console.log("Unique role values found:", roles);
-          
-          console.groupEnd();
-          return { 
-            success: true, 
-            sessionId,
-            chatFound: !!chat,
-            messageCount: chat.messages?.length || 0,
-            roles
-          };
-        } catch (err) {
-          console.error("Error in diagnoseChatIssue:", err);
-          console.groupEnd();
-          return { error: err.message };
+    if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        if (activeStream) {
+            cancelActiveStream();
         }
-      };
+        sendMessage();
+    }
+});
 
-      // Force load a specific chat - useful for debugging
-      window.forceLoadChat = async function(chatId) {
-        return await loadChatById(chatId || getSessionId());
-      };
-  });
+// Debugging assistance function - just for troubleshooting
+window.forceCheckSubscription = async function() {
+    try {
+        // Refresh token
+        const { data: sessionData } = await window.supabase.auth.getSession();
+        authToken = sessionData?.session?.access_token;
+        
+        // Check subscription via API
+        const response = await fetch('/api/subscription-check', {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            console.log("Subscription check:", result);
+            userIsSubscribed = result.isSubscribed;
+            updateUIForSubscription(userIsSubscribed);
+            return result;
+        }
+        return false;
+    } catch (err) {
+        console.error("Subscription check error:", err);
+        return false;
+    }
+};
+
+});
   </script>
 </body>
 </html>

@@ -42,6 +42,12 @@ const config = {
       return this.apiKey && this.apiKey.startsWith('xai-');
     }
   },
+  deepseek: {
+    apiKey: process.env.DEEPSEEK_API_KEY || "",
+    isConfigured: function() {
+      return this.apiKey && this.apiKey.length > 0;
+    }
+  },
   
   // Supabase config
   supabase: {
@@ -65,6 +71,7 @@ function validateConfig() {
     gemini: config.gemini.isConfigured() ? "Yes" : "No",
     claude: config.claude.isConfigured() ? "Yes" : "No",
     grok: config.grok.isConfigured() ? "Yes" : "No",
+    deepseek: config.deepseek.isConfigured() ? "Yes" : "No",
     stripe: config.stripe.secretKey ? "Yes" : "No",
     supabase: config.supabase.url && config.supabase.serviceKey ? "Yes" : "No"
   });
